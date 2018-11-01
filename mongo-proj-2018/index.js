@@ -10,14 +10,50 @@ mongoose.connect('mongodb://localhost/playground', {
 
 //create a schema-to define the shape of collection
 const courseSchema = new mongoose.Schema({
-    name: String,
+    name: {type:String,
+        required:true,
+        minlength:5,
+        maxlength:255,
+        trim:true
+        
+    
+    },
+    category:{
+        type:String,
+        required:true,
+        enum: ['web','mobile', 'netowrk'],
+        lowercase:true,
+        trim:true
+    },
     author: String,
-    tags: [String],
+    tags: {
+        type:Array,
+        
+        validate:{
+            isAsync:true,
+            validator:function(v,callback){
+                //when is ready call calback
+                setTimeout(() => {
+                    const result= v&& v.length>0
+                    callback(result)
+                }, 4000);
+                //return v&& v.length>0
+            },message: 'A course should have at least one tag associated with it'
+        }
+    },
     date: {
         type: Date,
         default: Date.now
     },
-    isPublished: Boolean
+    isPublished: Boolean,
+    price:{
+        type:Number,
+        required: function(){return this.isPublished},
+        min:10,
+        max:200,
+        get:v=>Math.round(v),
+        set:v=>Math.round(v)
+    }
 })
 //1st create schema-then model - thats how you get a class and then you can create instances of that class
 //compile model
@@ -26,17 +62,29 @@ const Course = mongoose.model('Course', courseSchema)
 async function createCourse() {
 
     const course = new Course({
-        name: 'React Course',
+        name: 'Reactjs Course 1',
+        category:'web',
         author: 'Rohan Ganguly',
         tags: ['react', 'frontend'],
-        isPublished: true
+        isPublished: false,
+        price:15
     })
 
     //save doc to db
-    const result = await course.save()
-    console.log(result)
+    // const result = await course.save()
+    // console.log(result)
+    try{
+        // await course.validate()
+        const result = await course.save()
+        console.log(result)
+    }catch(exception){
+        for (field in exception.errors){
+            console.log(exception.errors[field].message)
+        }
+    }
 
 }
+createCourse()
 
 
 async function getCourses() {
@@ -118,4 +166,4 @@ console.log(result)
 }
 
 
-updateCourse('5bd6971942f1c679c0c1b05e')
+// updateCourse('5bd6971942f1c679c0c1b05e')
