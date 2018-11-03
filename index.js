@@ -4,6 +4,8 @@ const express = require('express');
 const app = express();
 const customers=require('./routes/customers')
 const movies=require('./routes/movies')
+const Joi=require('joi')
+Joi.objectId=require('joi-objectid')(Joi)
 
 mongoose.connect('mongodb://localhost/vidly-app')
   .then(() => console.log('Connected to MongoDB...'))
